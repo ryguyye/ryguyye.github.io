@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="EDMCI Company Super Smash Bros Live Leaderboard - Track wins, losses, and rankings">
+    <title>EDMCI Smash Bros - Live Leaderboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Russo+One&display=swap');
+
+        body {
+            background: linear-gradient(135deg, #0a1f3d 0%, #1a3a52 50%, #0d2847 100%);
+            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .header-container {
+            background: linear-gradient(180deg, rgba(10, 31, 61, 0.95) 0%, rgba(26, 58, 82, 0.9) 100%);
+            border-bottom: 3px solid #00d9ff;
+            box-shadow: 0 8px 32px rgba(0, 217, 255, 0.2);
+        }
+
+        .header-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            max-height: 300px;
+            object-fit: contain;
+        }
+
+        .table-container {
+            border: 3px solid #00d9ff;
+            box-shadow: inset 0 0 30px rgba(0, 217, 255, 0.1), 0 0 30px rgba(0, 217, 255, 0.2);
+            background: linear-gradient(180deg, rgba(10, 31, 61, 0.95) 0%, rgba(15, 42, 72, 0.95) 100%);
+        }
+
+        .table-header {
+            background: linear-gradient(90deg, #0a2e5c 0%, #1a4a7f 50%, #0a2e5c 100%);
+            border-bottom: 2px solid #00d9ff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+            color: #00d9ff;
+            font-size: 0.95rem;
+        }
+
+        .table-row {
+            border-bottom: 1px solid rgba(0, 217, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .table-row:hover {
+            background: rgba(0, 217, 255, 0.08);
+            box-shadow: inset 0 0 15px rgba(0, 217, 255, 0.1);
+        }
+
+        .rank-badge {
+            background: linear-gradient(135deg, #ff6400 0%, #ff8c00 100%);
+            border-radius: 4px;
+            font-weight: 900;
+            color: white;
+            padding: 0.5rem 1rem;
+            display: inline-block;
+            min-width: 50px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(255, 100, 0, 0.4);
+        }
+
+        .player-cell {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .char-img {
+            width: 48px;
+            height: 48px;
+            border-radius: 4px;
+            border: 2px solid #00d9ff;
+            object-fit: cover;
+            box-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
+        }
+
+        .char-placeholder {
+            width: 48px;
+            height: 48px;
+            border-radius: 4px;
+            border: 2px dashed #00d9ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #00d9ff;
+            background: rgba(0, 217, 255, 0.05);
+            font-size: 0.8rem;
+        }
+
+        .stat-cell {
+            font-weight: 700;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .wins {
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.4);
+        }
+
+        .losses {
+            color: #ff4444;
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.4);
+        }
+
+        .set-count {
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.4);
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(0, 217, 255, 0.2);
+            border: 1px solid #00d9ff;
+            color: #00d9ff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: #00d9ff;
+            color: #0a1f3d;
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.5);
+        }
+
+        .btn-danger {
+            border-color: #ff4444;
+            color: #ff4444;
+            background: rgba(255, 68, 68, 0.1);
+        }
+
+        .btn-danger:hover {
+            background: #ff4444;
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(255, 68, 68, 0.5);
+        }
+
+        .control-panel {
+            background: linear-gradient(180deg, rgba(10, 31, 61, 0.95) 0%, rgba(15, 42, 72, 0.95) 100%);
+            border: 2px solid #00d9ff;
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.2);
+        }
+
+        .control-title {
+            font-family: 'Russo One', sans-serif;
+            color: #00d9ff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 1.2rem;
+        }
+
+        .input-field {
+            background: rgba(0, 217, 255, 0.05);
+            border: 2px solid #00d9ff;
+            color: #ffffff;
+            border-radius: 4px;
+            padding: 0.75rem;
+            font-size: 1rem;
+        }
+
+        .input-field::placeholder {
+            color: rgba(0, 217, 255, 0.5);
+        }
+
+        .input-field:focus {
+            outline: none;
+            background: rgba(0, 217, 255, 0.1);
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d9ff 0%, #0099cc 100%);
+            color: #0a1f3d;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 217, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 25px rgba(0, 217, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .select-field {
+            background: rgba(0, 217, 255, 0.05);
+            border: 2px solid #00d9ff;
+            color: #ffffff;
+            border-radius: 4px;
+            padding: 0.75rem;
+            font-size: 1rem;
+        }
+
+        .select-field:focus {
+            outline: none;
+            background: rgba(0, 217, 255, 0.1);
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+        }
+
+        .select-field option {
+            background: #0a1f3d;
+            color: #ffffff;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: #888;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(0, 217, 255, 0.2);
+            margin-top: 4rem;
+        }
+
+        .footer a {
+            color: #00d9ff;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header-container py-6 mb-8">
+        <div class="max-w-7xl mx-auto px-6">
+            <img id="headerImage" src="" alt="EDMCI Super Smash Bros Live Leaderboard" class="header-image mb-4">
+            <div class="text-center">
+                <h1 class="text-4xl font-bold text-white mb-2">EDMCI SUPER SMASH BROS</h1>
+                <p class="text-cyan-400 text-lg font-semibold">Live Leaderboard</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-6 pb-12">
+        <!-- Leaderboard Table -->
+        <div class="table-container rounded mb-8">
+            <table class="w-full">
+                <thead class="table-header">
+                    <tr>
+                        <th class="px-6 py-4 text-left w-16">RANK</th>
+                        <th class="px-6 py-4 text-left">MAIN</th>
+                        <th class="px-6 py-4 text-left flex-1">PLAYER</th>
+                        <th class="px-6 py-4 text-center w-24">WINS</th>
+                        <th class="px-6 py-4 text-center w-24">LOSSES</th>
+                        <th class="px-6 py-4 text-center w-24">SET COUNT</th>
+                        <th class="px-6 py-4 text-center w-32">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard" class="divide-y divide-blue-700/30">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Control Panels -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Add Player -->
+            <div class="control-panel p-6 rounded">
+                <h2 class="control-title mb-4">Add Player</h2>
+                <div class="flex gap-3">
+                    <input
+                        type="text"
+                        id="newPlayerInput"
+                        placeholder="Enter player name"
+                        class="input-field flex-1"
+                    >
+                    <button onclick="addPlayer()" class="btn-primary">
+                        Add
+                    </button>
+                </div>
+            </div>
+
+            <!-- Record Match -->
+            <div class="control-panel p-6 rounded">
+                <h2 class="control-title mb-4">Log Match Result</h2>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-cyan-400 text-xs font-bold mb-2 uppercase">Winner</label>
+                        <select id="winnerSelect" class="select-field w-full">
+                            <option value="">Select...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-cyan-400 text-xs font-bold mb-2 uppercase">Loser</label>
+                        <select id="loserSelect" class="select-field w-full">
+                            <option value="">Select...</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="recordMatch()" class="btn-primary w-full">
+                            Log
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Header Management (Hidden by default, toggle with keyboard shortcut) -->
+        <div id="adminPanel" style="display: none;" class="control-panel p-6 rounded mb-8">
+            <h2 class="control-title mb-4">⚙️ Admin: Header Image</h2>
+            <div class="flex gap-3 flex-wrap">
+                <input type="file" id="headerFile" accept="image/*" onchange="uploadHeaderImage()" style="display: none;">
+                <button onclick="document.getElementById('headerFile').click()" class="btn-primary">📤 Upload Header</button>
+                <input type="text" id="headerUrl" placeholder="Or paste header image URL..." class="input-field flex-1 min-w-96">
+                <button onclick="updateHeaderImageFromUrl()" class="btn-primary">Load</button>
+                <button onclick="clearHeaderImage()" class="btn-primary" style="background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);">Clear</button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>🎮 EDMCI Company Super Smash Bros Tournament Leaderboard</p>
+            <p style="font-size: 0.8rem; margin-top: 0.5rem; color: #666;">Press <strong>CTRL + H</strong> to access header settings</p>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'edmci_smash_leaderboard';
+        const HEADER_KEY = 'edmci_header_image';
+
+        // Toggle admin panel with keyboard shortcut
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'h') {
+                e.preventDefault();
+                const panel = document.getElementById('adminPanel');
+                panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            }
+        });
+
+        function uploadHeaderImage() {
+            const file = document.getElementById('headerFile').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const dataUrl = e.target.result;
+                    document.getElementById('headerImage').src = dataUrl;
+                    localStorage.setItem(HEADER_KEY, dataUrl);
+                    document.getElementById('headerFile').value = '';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function updateHeaderImageFromUrl() {
+            const url = document.getElementById('headerUrl').value;
+            if (url) {
+                document.getElementById('headerImage').src = url;
+                localStorage.setItem(HEADER_KEY, url);
+            }
+        }
+
+        function clearHeaderImage() {
+            document.getElementById('headerImage').src = '';
+            localStorage.removeItem(HEADER_KEY);
+            document.getElementById('headerUrl').value = '';
+        }
+
+        function loadHeaderImage() {
+            const saved = localStorage.getItem(HEADER_KEY);
+            if (saved) {
+                document.getElementById('headerImage').src = saved;
+                if (!saved.startsWith('data:')) {
+                    document.getElementById('headerUrl').value = saved;
+                }
+            }
+        }
+
+        function initializeData() {
+            const defaultData = {
+                'Brandon Croll': { wins: 1, losses: 1, character: 'https://www.smashbros.com/wiiu-3ds/images/character/king-k.-rool/main.png' },
+                'Ryan Trainor': { wins: 1, losses: 1, character: '' },
+                'Lane Whitmore': { wins: 0, losses: 0, character: '' },
+                'Ethan Robertson': { wins: 0, losses: 0, character: '' },
+                'Mike Tolliver': { wins: 0, losses: 0, character: '' },
+                'EDMCI Admin': { wins: 0, losses: 0, character: '' },
+                'Doug Milan': { wins: 0, losses: 0, character: '' },
+                'Kayla Backer': { wins: 0, losses: 0, character: '' },
+                'Tim Carlson': { wins: 0, losses: 0, character: '' },
+                'Stepan Aklanov': { wins: 0, losses: 0, character: '' },
+                'Kelly Rylander': { wins: 0, losses: 0, character: '' },
+                'EDMCI Control Panels': { wins: 0, losses: 0, character: '' },
+                'EDMCI Fax': { wins: 0, losses: 0, character: '' },
+                'Philip Hill': { wins: 0, losses: 0, character: '' },
+                'Tom Gray': { wins: 0, losses: 0, character: '' },
+                'Hannah Robertson': { wins: 0, losses: 0, character: '' },
+                'Cindy Robertson': { wins: 0, losses: 0, character: '' },
+                'Darryl Jennings': { wins: 0, losses: 0, character: '' },
+                'Essie Zamani': { wins: 0, losses: 0, character: '' },
+                'FIELD': { wins: 0, losses: 0, character: '' },
+                'Keith Sanford': { wins: 0, losses: 0, character: '' },
+                'Ethan (personal)': { wins: 0, losses: 0, character: '' },
+                'SHOP': { wins: 0, losses: 0, character: '' },
+                'Richard Shepard': { wins: 0, losses: 0, character: '' },
+                'Mike Trykar': { wins: 0, losses: 0, character: '' },
+                'Brian Rush': { wins: 0, losses: 0, character: '' },
+                'Alex Fowler': { wins: 0, losses: 0, character: '' },
+                'John Mummert': { wins: 0, losses: 0, character: '' },
+                'Hector Marroquin': { wins: 0, losses: 0, character: '' },
+                'Julius Tumaque': { wins: 0, losses: 0, character: '' },
+                'Joseph Uribe': { wins: 0, losses: 0, character: '' },
+                'Ian Skarshaug': { wins: 0, losses: 0, character: '' },
+                'Edgardo Palomo': { wins: 0, losses: 0, character: '' },
+                'Kevin Robertson': { wins: 0, losses: 0, character: '' },
+                'Savino Nunez': { wins: 0, losses: 0, character: '' },
+                'Corina Williams': { wins: 0, losses: 0, character: '' },
+                'Justin Montera': { wins: 0, losses: 0, character: '' },
+                'Abner Hernandez': { wins: 0, losses: 0, character: '' },
+                'Jamesson Bisnar': { wins: 0, losses: 0, character: '' },
+                'Ameria Fowler': { wins: 0, losses: 0, character: '' },
+                'EDMCI Resume': { wins: 0, losses: 0, character: '' },
+                'Amanda Ruiz': { wins: 0, losses: 0, character: '' },
+                'Robert Scarborough': { wins: 0, losses: 0, character: '' },
+                'John Lopez': { wins: 0, losses: 0, character: '' },
+                'EDMCI Surface': { wins: 0, losses: 0, character: '' },
+                'Antonio Gutierrez': { wins: 0, losses: 0, character: '' },
+                'EDMCI Invoicing': { wins: 0, losses: 0, character: '' },
+                'Edgardo Rivera': { wins: 0, losses: 0, character: '' },
+                'Armando Lopez Espinoza': { wins: 0, losses: 0, character: '' },
+                'Jeff Peck': { wins: 0, losses: 0, character: '' },
+                'Sean White': { wins: 0, losses: 0, character: '' },
+                'Miguel Solano': { wins: 0, losses: 0, character: '' },
+                'Ahali Gonzalez': { wins: 0, losses: 0, character: '' },
+                'Bereket Meles': { wins: 0, losses: 0, character: '' },
+                'Jeff Wax': { wins: 0, losses: 0, character: '' },
+                'Jacob McIntire': { wins: 0, losses: 0, character: '' },
+                'Steven LeBeau': { wins: 0, losses: 0, character: '' }
+            };
+
+            const existing = localStorage.getItem(STORAGE_KEY);
+            if (existing) {
+                const players = JSON.parse(existing);
+                Object.keys(defaultData).forEach(name => {
+                    if (!players[name]) {
+                        players[name] = defaultData[name];
+                    }
+                });
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(players));
+            } else {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultData));
+            }
+        }
+
+        function getPlayers() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : {};
+        }
+
+        function savePlayers(players) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(players));
+        }
+
+        function renderLeaderboard() {
+            const allPlayers = getPlayers();
+            const sorted = Object.entries(allPlayers)
+                .map(([name, record]) => ({
+                    name,
+                    wins: record.wins,
+                    losses: record.losses,
+                    total: record.wins + record.losses,
+                    character: record.character || ''
+                }))
+                .sort((a, b) => {
+                    const winRateA = a.total ? a.wins / a.total : 0;
+                    const winRateB = b.total ? b.wins / b.total : 0;
+                    if (winRateA !== winRateB) return winRateB - winRateA;
+                    return b.wins - a.wins;
+                });
+
+            const tbody = document.getElementById('leaderboard');
+            tbody.innerHTML = sorted.map((player, idx) => `
+                <tr class="table-row">
+                    <td class="px-6 py-4">
+                        <span class="rank-badge">${idx + 1}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        ${player.character ? `<img src="${player.character}" alt="${player.name}" class="char-img" onerror="this.style.display='none'">` : `<div class="char-placeholder">+</div>`}
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="player-cell">
+                            <span>${player.name}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 stat-cell wins">${player.wins}</td>
+                    <td class="px-6 py-4 stat-cell losses">${player.losses}</td>
+                    <td class="px-6 py-4 stat-cell set-count">${player.total}</td>
+                    <td class="px-6 py-4 actions-cell">
+                        <button onclick="editCharacter('${player.name}')" class="action-btn">Char</button>
+                        <button onclick="deletePlayer('${player.name}')" class="action-btn btn-danger">Del</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            updateSelects();
+        }
+
+        function editCharacter(name) {
+            const players = getPlayers();
+            const currentUrl = players[name]?.character || '';
+            const newUrl = prompt(`Enter image URL for ${name}'s main character:`, currentUrl);
+            if (newUrl !== null) {
+                players[name].character = newUrl;
+                savePlayers(players);
+                renderLeaderboard();
+            }
+        }
+
+        function updateSelects() {
+            const players = Object.keys(getPlayers()).sort();
+            const winnerSelect = document.getElementById('winnerSelect');
+            const loserSelect = document.getElementById('loserSelect');
+            const currentWinner = winnerSelect.value;
+            const currentLoser = loserSelect.value;
+
+            winnerSelect.innerHTML = '<option value="">Select...</option>' +
+                players.map(p => `<option value="${p}">${p}</option>`).join('');
+            loserSelect.innerHTML = '<option value="">Select...</option>' +
+                players.map(p => `<option value="${p}">${p}</option>`).join('');
+
+            winnerSelect.value = currentWinner;
+            loserSelect.value = currentLoser;
+        }
+
+        function addPlayer() {
+            const input = document.getElementById('newPlayerInput');
+            const name = input.value.trim();
+            if (!name) return;
+
+            const players = getPlayers();
+            if (!players[name]) {
+                players[name] = { wins: 0, losses: 0, character: '' };
+                savePlayers(players);
+                input.value = '';
+                renderLeaderboard();
+            }
+        }
+
+        function recordMatch() {
+            const winner = document.getElementById('winnerSelect').value;
+            const loser = document.getElementById('loserSelect').value;
+
+            if (!winner || !loser || winner === loser) {
+                alert('Select different players');
+                return;
+            }
+
+            const players = getPlayers();
+            players[winner].wins++;
+            players[loser].losses++;
+            savePlayers(players);
+            renderLeaderboard();
+
+            document.getElementById('winnerSelect').value = '';
+            document.getElementById('loserSelect').value = '';
+        }
+
+        function deletePlayer(name) {
+            if (!confirm(`Delete ${name} from the leaderboard?`)) return;
+            const players = getPlayers();
+            delete players[name];
+            savePlayers(players);
+            renderLeaderboard();
+        }
+
+        window.addEventListener('load', () => {
+            loadHeaderImage();
+            initializeData();
+            renderLeaderboard();
+        });
+
+        document.getElementById('newPlayerInput')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addPlayer();
+        });
+    </script>
+</body>
+</html>
